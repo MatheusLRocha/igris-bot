@@ -20,8 +20,6 @@ const client = new Client({ intents: [
 
 client.commands = new Collection();
 
-client.cooldowns = new Collection();
-
 for (const folder of commandFolders) {
     const commandsPath = path.join(foldersPath, folder);
     const commandFiles = fs.readdirSync(commandsPath).filter((file) => file.endsWith('.js'));
