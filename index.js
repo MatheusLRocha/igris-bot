@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { Client, Collection, Events, GatewayIntentBits } from 'discord.js';
+import { Client, Collection, GatewayIntentBits } from 'discord.js';
 
 const token = process.env.DISCORD_TOKEN;
 
@@ -18,12 +18,9 @@ const client = new Client({ intents: [
     GatewayIntentBits.GuildMembers,
 ] });
 
-client.once(Events.ClientReady, (readyClient) => {
-    console.log(`Ready! Logged in as ${readyClient.user.tag}`);
-});
-
 client.commands = new Collection();
 
+client.cooldowns = new Collection();
 
 for (const folder of commandFolders) {
     const commandsPath = path.join(foldersPath, folder);
@@ -43,37 +40,20 @@ for (const folder of commandFolders) {
     }
 }
 
-client.on(Events.InteractionCreate, async (interaction) => {
-    if (!interaction.isChatInputCommand()) {
-        return;
-    }
+const eventsPath = path.join(__dirname, 'events');
+const eventFiles = fs.readdirSync(eventsPath).filter((file) => file.endsWith('.js'));
 
-    const command = interaction.client.commands.get(interaction.commandName);
+for (const file of eventFiles) {
+    const filePath = path.join(eventsPath, file);
 
-    if (!command) {
-        console.error(`No command matching ${interaction.commandName} was found.`);
-        return;
-    }
+    const event = (await import(pathToFileURL(filePath).href)).default;
 
-    try {
-        await command.execute(interaction);
+    if (event.once) {
+        client.once(event.name, (...args) => event.execute(...args));
     }
-    catch (error) {
-        console.error(error);
-
-        if (interaction.replied || interaction.deferred) {
-            await interaction.followUp({
-                content: 'There was an error while executing this command!',
-                flags: MessageFlags.Ephemeral,
-            });
-        }
-        else {
-            await interaction.reply({
-                content: 'There was an error while executing this command!',
-                flags: MessageFlags.Ephemeral,
-            });
-        }
+    else {
+        client.on(event.name, (...args) => event.execute(...args));
     }
-});
+}
 
 client.login(token);
