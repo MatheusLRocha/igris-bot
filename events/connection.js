@@ -9,7 +9,7 @@ export default {
         console.log(`Ready! Logged in as ${client.user.tag}`);
 
 
-        cron.schedule('0 9 * * *', async () => {
+        cron.schedule('0 11 * * *', async () => {
             try {
                 await SendDailyNews(client);
             }
