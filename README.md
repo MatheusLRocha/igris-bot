@@ -52,6 +52,9 @@ cd seu-repositorio
     WELCOME_CHANNEL=seu_canalid_aqui
     GUILD=seu_servidorid_aqui
 
+4. Inicie o bot
+    npm start
+
 🔧 Configuração do bot
 
     Para que o bot consiga detectar a entrada e saída de integrantes, é necessário configurar as permissões e intents correspondentes no Discord Developer Portal.
